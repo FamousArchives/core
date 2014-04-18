@@ -62,27 +62,43 @@ define(function(require, exports, module) {
      *
      * @method get
      *
-     * @return {Ojbect} contained renderable object
+     * @return {Ojbect} contained renderable or modifier object
      */
     RenderNode.prototype.get = function get() {
         return this._object || (this._hasMultipleChildren ? null : (this._child ? this._child.get() : null));
     };
 
     /**
-     * Overwrite the list of children to contain the single provided object
+     * Return the single child object.  Returns null if this node has multiple child nodes.
+     *
+     * @method get
+     *
+     * @return {Ojbect} child renderable or modifier object
+     */
+    RenderNode.prototype.getChild = function getChild() {
+        return this._hasMultipleChildren ? null : (this._child ? this._child.get() : null);
+    };
+
+    /**
+     * Overwrite the list of children to contain the single provided object.
+     * If preserveChildren is set to true, this node will wrap the single
+     * provided object while preserving the attached child nodes.
      *
      * @method set
-     * @param {Object} child renderable object
+     * @param {Object} renderable renderable object
+     * @param {Boolean} preserveChildren true to preserve any attached children
      * @return {RenderNode} this render node, or child if it is a RenderNode
      */
-    RenderNode.prototype.set = function set(child) {
-        this._childResult = null;
-        this._hasMultipleChildren = false;
-        this._isRenderable = child.render ? true : false;
-        this._isModifier = child.modify ? true : false;
-        this._object = child;
-        this._child = null;
-        if (child instanceof RenderNode) return child;
+    RenderNode.prototype.set = function set(renderable, preserveChildren) {
+        if (!preserveChildren) {
+            this._childResult = null;
+            this._hasMultipleChildren = false;
+            this._child = null;
+        }
+        this._isRenderable = renderable.render ? true : false;
+        this._isModifier = renderable.modify ? true : false;
+        this._object = renderable;
+        if (renderable instanceof RenderNode) return renderable;
         else return this;
     };
 
