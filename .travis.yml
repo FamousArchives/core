@@ -4,4 +4,4 @@ node_js:
 before_install:
   - currentfolder=${PWD##*/}
   - if [ "$currentfolder" != 'core' ]; then cd .. && eval "mv $currentfolder core" && cd core; fi
-
+  - npm install -g grunt
