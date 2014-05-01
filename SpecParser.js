@@ -99,13 +99,8 @@ define(function(require, exports, module) {
 
         if (typeof spec === 'number') {
             id = spec;
-            transform = parentContext.transform;
-            if (parentContext.size && parentContext.origin && (parentContext.origin[0] || parentContext.origin[1])) {
-                var originAdjust = [parentContext.origin[0] * parentContext.size[0], parentContext.origin[1] * parentContext.size[1], 0];
-                transform = Transform.thenMove(transform, _vecInContext(originAdjust, sizeContext));
-            }
             this.result[id] = {
-                transform: transform,
+                transform: parentContext.transform,
                 opacity: parentContext.opacity,
                 origin: parentContext.origin || _originZeroZero,
                 size: parentContext.size

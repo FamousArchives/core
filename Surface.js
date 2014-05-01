@@ -36,7 +36,6 @@ define(function(require, exports, module) {
         this.properties = {};
         this.content = '';
         this.classList = [];
-        this.size = null;
 
         this._classesDirty = true;
         this._stylesDirty = true;
@@ -260,7 +259,6 @@ define(function(require, exports, module) {
      * @param {Object} [options] overrides for default options.  See constructor.
      */
     Surface.prototype.setOptions = function setOptions(options) {
-        if (options.size) this.setSize(options.size);
         if (options.classes) this.setClasses(options.classes);
         if (options.properties) this.setProperties(options.properties);
         if (options.content) this.setContent(options.content);
@@ -435,13 +433,6 @@ define(function(require, exports, module) {
         var origin = context.origin;
         var size = context.size;
 
-        if (this.size) {
-            var origSize = size;
-            size = [this.size[0], this.size[1]];
-            if (size[0] === undefined && origSize[0]) size[0] = origSize[0];
-            if (size[1] === undefined && origSize[1]) size[1] = origSize[1];
-        }
-
         if (_xyNotEquals(this._size, size)) {
             this._size = [size[0], size[1]];
             this._sizeDirty = true;
@@ -462,14 +453,7 @@ define(function(require, exports, module) {
         if (_xyNotEquals(this._origin, origin) || Transform.notEquals(this._matrix, matrix)) {
             if (!matrix) matrix = Transform.identity;
             this._matrix = matrix;
-            var aaMatrix = matrix;
-            if (origin) {
-                if (!this._origin) this._origin = [0, 0];
-                this._origin[0] = origin[0];
-                this._origin[1] = origin[1];
-                aaMatrix = Transform.moveThen([-this._size[0] * origin[0], -this._size[1] * origin[1], 0], matrix);
-            }
-            _setMatrix(target, aaMatrix);
+            _setMatrix(target, matrix);
         }
 
         if (!(this._classesDirty || this._stylesDirty || this._sizeDirty || this._contentDirty)) return;
@@ -572,19 +556,8 @@ define(function(require, exports, module) {
      * @param {boolean} actual return computed size rather than provided
      * @return {Array.Number} [x,y] size of surface
      */
-    Surface.prototype.getSize = function getSize(actual) {
-        return actual ? this._size : (this.size || this._size);
-    };
-
-    /**
-     * Set x and y dimensions of the surface.
-     *
-     * @method setSize
-     * @param {Array.Number} size as [width, height]
-     */
-    Surface.prototype.setSize = function setSize(size) {
-        this.size = size ? [size[0], size[1]] : null;
-        this._sizeDirty = true;
+    Surface.prototype.getSize = function getSize() {
+        return this._size;
     };
 
     module.exports = Surface;
