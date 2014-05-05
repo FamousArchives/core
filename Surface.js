@@ -316,12 +316,15 @@ define(function(require, exports, module) {
      * @return {string} matrix3d CSS style representation of the transform
      */
     function _formatCSSTransform(m) {
+        m[0] = Math.round(m[0] * 1e6) / 1e6;
+        m[5] = Math.round(m[5] * 1e6) / 1e6;
+
         m[12] = Math.round(m[12] * devicePixelRatio) / devicePixelRatio;
         m[13] = Math.round(m[13] * devicePixelRatio) / devicePixelRatio;
 
         var result = 'matrix3d(';
         for (var i = 0; i < 15; i++) {
-            result += (m[i] < 0.000001 && m[i] > -0.000001) ? '0,' : m[i] + ',';
+            result += (m[i] < 1e-6 && m[i] > -1e-6) ? '0,' : m[i] + ',';
         }
         result += m[15] + ')';
         return result;
