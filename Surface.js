@@ -263,7 +263,7 @@ define(function(require, exports, module) {
         if (options.size) this.setSize(options.size);
         if (options.classes) this.setClasses(options.classes);
         if (options.properties) this.setProperties(options.properties);
-        if (options.content) this.setContent(options.content);
+        if (options.content !== undefined) this.setContent(options.content);
     };
 
     //  Attach Famous event handling to document events emanating from target
