@@ -606,7 +606,7 @@ define(function(require, exports, module) {
             Math.abs(a[5] - b[5]) > 1e-5 ||
             Math.abs(a[6] - b[6]) > 1e-5 ||
             Math.abs(a[8] - b[8]) > 1e-5 ||
-            Math.abs a[9] - b[9]) > 1e-5 ||
+            Math.abs(a[9] - b[9]) > 1e-5 ||
             Math.abs(a[10] - b[10]) > 1e-5;
     };
 
