@@ -98,6 +98,39 @@ define(function(require, exports, module) {
     };
 
     /**
+     * Multiply two or more Transform matrix types to return a Transform matrix.
+     *
+     * @method multiply4x4Many
+     * @static
+     * @param {Array.Transform} array of matrices
+     * @return {Transform} the resulting matrix
+     */
+    Transform.multiply4x4Many = function multiply4x4Many(l) {
+    	var m = l[0];
+    	for (var i=1; i<l.length; i++) {
+    		m = Transform.multiply4x4(m,l[i]);
+    	}
+    	return m;
+    }
+
+    /**
+     * Fast-multiply two or more Transform matrix types to return a
+     *    Matrix, assuming bottom row on each is [0 0 0 1].
+     *
+     * @method multiplyMany
+     * @static
+     * @param {Array.Transform} array of matrices
+     * @return {Transform} the resulting matrix
+     */
+    Transform.multiplyMany = function multiplyMany(l) {
+    	var m = l[0];
+    	for (var i=1; i<l.length; i++) {
+    		m = Transform.multiply(m,l[i]);
+    	}
+    	return m;
+    }
+
+    /**
      * Return a Transform translated by additional amounts in each
      *    dimension. This is equivalent to the result of
      *
