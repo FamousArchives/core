@@ -556,7 +556,12 @@ define(function(require, exports, module) {
             while (target.hasChildNodes()) target.removeChild(target.firstChild);
             target.appendChild(content);
         }
-        else if (typeof $ !== 'undefined' && content instanceof $) {
+        else if (
+            typeof $ !== 'undefined' &&
+            typeof jQuery !== 'undefined' &&
+            $ === jQuery &&
+            content instanceof $
+        ) {
             $(target).empty();
             $(target).append(content);
         }

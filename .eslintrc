@@ -5,7 +5,8 @@
   },
   "globals": {
     "$": false,
-    "DocumentFragment": true
+    "DocumentFragment": true,
+    "jQuery": false
   },
   "rules": {
     "valid-jsdoc": 0,
