@@ -4,6 +4,7 @@
     "amd": true
   },
   "globals": {
+    "$": false,
     "DocumentFragment": true
   },
   "rules": {
