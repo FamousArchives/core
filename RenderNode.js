@@ -65,7 +65,13 @@ define(function(require, exports, module) {
      * @return {Ojbect} contained renderable object
      */
     RenderNode.prototype.get = function get() {
-        return this._object || (this._hasMultipleChildren ? null : (this._child ? this._child.get() : null));
+        if (this._object) return this._object;
+
+        if (this._hasMultipleChildren) return null;
+
+        if (this._child) return this._child.get();
+
+        return null;
     };
 
     /**
