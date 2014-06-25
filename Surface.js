@@ -27,8 +27,8 @@ define(function(require, exports, module) {
      * @param {Object} [options] default option overrides
      * @param {Array.Number} [options.size] [width, height] in pixels
      * @param {Array.string} [options.classes] CSS classes to set on inner content
-     * @param {Array} [options.properties] string dictionary of HTML attributes to set on target div
-     * @param {string} [options.content] inner (HTML) content of surface
+     * @param {Object} [options.properties] string dictionary of HTML attributes to set on target div
+     * @param {string|Node|$} [options.content] inner (HTML) content of surface
      */
     function Surface(options) {
         this.options = {};
@@ -233,7 +233,7 @@ define(function(require, exports, module) {
      *    causes a re-rendering if the content has changed.
      *
      * @method setContent
-     * @param {string|Document Fragment} content HTML content
+     * @param {string|Node|$} content HTML content
      */
     Surface.prototype.setContent = function setContent(content) {
         if (this.content !== content) {
@@ -247,7 +247,7 @@ define(function(require, exports, module) {
      *
      * @method getContent
      *
-     * @return {string} inner (HTML) content
+     * @return {string|Node|$} inner (HTML) content
      */
     Surface.prototype.getContent = function getContent() {
         return this.content;
@@ -551,9 +551,19 @@ define(function(require, exports, module) {
      */
     Surface.prototype.deploy = function deploy(target) {
         var content = this.getContent();
+
         if (content instanceof Node) {
             while (target.hasChildNodes()) target.removeChild(target.firstChild);
             target.appendChild(content);
+        }
+        else if (
+            typeof $ !== 'undefined' &&
+            typeof jQuery !== 'undefined' &&
+            $ === jQuery &&
+            content instanceof $
+        ) {
+            $(target).empty();
+            $(target).append(content);
         }
         else target.innerHTML = content;
     };
