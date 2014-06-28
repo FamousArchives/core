@@ -30,11 +30,17 @@ define(function(require, exports, module) {
 
     var Engine = {};
 
+    var timer = performance.now || Date.now;
+    var requestAnimationFrame = window.requestAnimationFrame;
+    var cancelAnimationFrame = window.cancelAnimationFrame;
+
+    var requestID;
+
     var contexts = [];
     var nextTickQueue = [];
     var deferQueue = [];
 
-    var lastTime = Date.now();
+    var lastTime = timer();
     var frameTime;
     var frameTimeLimit;
     var loopEnabled = true;
@@ -44,8 +50,7 @@ define(function(require, exports, module) {
     var options = {
         containerType: 'div',
         containerClass: 'famous-container',
-        fpsCap: undefined,
-        runLoop: true
+        fpsCap: undefined
     };
     var optionsManager = new OptionsManager(options);
 
@@ -53,19 +58,21 @@ define(function(require, exports, module) {
     var MAX_DEFER_FRAME_TIME = 10;
 
     /**
-     * Inside requestAnimationFrame loop, step() is called, which:
-     *   calculates current FPS (throttling loop if it is over limit set in setFPSCap),
-     *   emits dataless 'prerender' event on start of loop,
-     *   calls in order any one-shot functions registered by nextTick on last loop,
-     *   calls Context.update on all Context objects registered,
-     *   and emits dataless 'postrender' event on end of loop.
+     * This is the main loop of the engine, which will schedule itself to be 
+     * called via requestAnimationFrame over and over by defailt. Within it the 
+     * following steps take place sequentially:
+     *   calculate current FPS (throttling loop if it is over limit set in setFPSCap),
+     *   emit dataless 'prerender' event on start of loop,
+     *   call in order any one-shot functions registered by nextTick on last loop,
+     *   call Context.update on all Context objects registered,
+     *   emit dataless 'postrender' event on end of loop.
      *
-     * @static
-     * @private
-     * @method step
+     * @param  {Number} timestamp High-resolution timestamp passed in by rAF.
+     * @param  {Number} quantity Number of frames to loop through. If false, 
+     *                           Engine will loop indefinitely.
      */
-    Engine.step = function step() {
-        var currentTime = Date.now();
+    function loop(timestamp, quantity) {
+        var currentTime = timer();
 
         // skip frame if we're over our framerate cap
         if (frameTimeLimit && currentTime - lastTime < frameTimeLimit) return;
@@ -82,24 +89,66 @@ define(function(require, exports, module) {
         nextTickQueue.splice(0);
 
         // limit total execution time for deferrable functions
-        while (deferQueue.length && (Date.now() - currentTime) < MAX_DEFER_FRAME_TIME) {
+        while (deferQueue.length && (timer() - currentTime) < MAX_DEFER_FRAME_TIME) {
             deferQueue.shift().call(this);
         }
 
         for (i = 0; i < contexts.length; i++) contexts[i].update();
 
         eventHandler.emit('postrender');
+
+        // Unless step is true, continue processing frames.
+        if (!quantity) {
+            requestID = requestAnimationFrame(loop);
+        } else {
+            quantity--;
+            requestID = requestAnimationFrame(function(timestamp) {
+                loop(timestamp, quantity);
+            });
+        }
     };
 
-    // engage requestAnimationFrame
-    function loop() {
-        if (options.runLoop) {
-            Engine.step();
-            requestAnimationFrame(loop);
+    /**
+     * Enable the Engine step loop.
+     * 
+     */
+    Engine.enable = function enable() {
+        if (!loopEnabled) {
+            requestID = requestAnimationFrame(loop);
+            loopEnabled = true;
         }
-        else loopEnabled = false;
     }
-    requestAnimationFrame(loop);
+
+    /**
+     * Disable the Engine step loop.
+     * 
+     */
+    Engine.disable = function disable() {
+        if (loopEnabled) {
+            cancelAnimationFrame(requestID);
+            requestID = undefined;
+            loopEnabled = false;
+        }
+    }
+
+    Engine.enable();
+
+    /**
+     * If step() is called, the Engine is disabled and the frame is advanced 
+     * once by default. step() can be called with a quantity to advance the 
+     * Engine that many number of frames.
+     *
+     * @static
+     * @public
+     * @method step
+     * @param  {Number} quantity Number of frames to loop through. If false, 
+     *                           Engine will loop indefinitely.
+     */
+    Engine.step = function step(quantity) {
+        quantity = quantity || 1;
+        Engine.disable();
+        loop(timer(), quantity);
+    }
 
     //
     // Upon main document window resize (unless on an "input" HTML element):
@@ -248,7 +297,6 @@ define(function(require, exports, module) {
      *
      * @param {Object} [options] overrides of default options
      * @param {Number} [options.fpsCap]  maximum fps at which the system should run
-     * @param {boolean} [options.runLoop=true] whether the run loop should continue
      * @param {string} [options.containerType="div"] type of container element.  Defaults to 'div'.
      * @param {string} [options.containerClass="famous-container"] type of container element.  Defaults to 'famous-container'.
      */
@@ -300,6 +348,20 @@ define(function(require, exports, module) {
     };
 
     /**
+     * Deregisters an existing context so that the engine ceases to update it
+     * within the run loop.
+     *
+     * @param  {Object} context An existing context
+     * @return {[type]}         [description]
+     */
+    Engine.deregisterContext = function deregisterContext(context) {
+        var i = contexts.indexOf(context);
+        if (i !== -1) {
+            contexts.splice(i, 1);
+        }
+    };
+
+    /**
      * Queue a function to be executed on the next tick of the
      *    Engine.
      *
@@ -328,10 +390,10 @@ define(function(require, exports, module) {
     optionsManager.on('change', function(data) {
         if (data.id === 'fpsCap') Engine.setFPSCap(data.value);
         else if (data.id === 'runLoop') {
+            console.log('Option `runLoop` is deprecated. Use Engine.enable() instead.');
             // kick off the loop only if it was stopped
-            if (!loopEnabled && data.value) {
-                loopEnabled = true;
-                requestAnimationFrame(loop);
+            if (data.value) {
+                Engine.enable();
             }
         }
     });
