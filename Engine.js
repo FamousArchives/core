@@ -30,7 +30,7 @@ define(function(require, exports, module) {
 
     var Engine = {};
 
-    var timer = performance.now || Date.now;
+    var timer = window.performance.now.bind(performance) || Date.now;
     var requestAnimationFrame = window.requestAnimationFrame;
     var cancelAnimationFrame = window.cancelAnimationFrame;
 
@@ -43,7 +43,7 @@ define(function(require, exports, module) {
     var lastTime = timer();
     var frameTime;
     var frameTimeLimit;
-    var loopEnabled = true;
+    var loopEnabled = false;
     var eventForwarders = {};
     var eventHandler = new EventHandler();
 
@@ -58,8 +58,8 @@ define(function(require, exports, module) {
     var MAX_DEFER_FRAME_TIME = 10;
 
     /**
-     * This is the main loop of the engine, which will schedule itself to be 
-     * called via requestAnimationFrame over and over by defailt. Within it the 
+     * This is the main loop of the engine, which will schedule itself to be
+     * called via requestAnimationFrame over and over by defailt. Within it the
      * following steps take place sequentially:
      *   calculate current FPS (throttling loop if it is over limit set in setFPSCap),
      *   emit dataless 'prerender' event on start of loop,
@@ -68,7 +68,7 @@ define(function(require, exports, module) {
      *   emit dataless 'postrender' event on end of loop.
      *
      * @param  {Number} timestamp High-resolution timestamp passed in by rAF.
-     * @param  {Number} quantity Number of frames to loop through. If false, 
+     * @param  {Number} quantity Number of frames to loop through. If false,
      *                           Engine will loop indefinitely.
      */
     function loop(timestamp, quantity) {
@@ -110,7 +110,7 @@ define(function(require, exports, module) {
 
     /**
      * Enable the Engine step loop.
-     * 
+     *
      */
     Engine.enable = function enable() {
         if (!loopEnabled) {
@@ -121,7 +121,7 @@ define(function(require, exports, module) {
 
     /**
      * Disable the Engine step loop.
-     * 
+     *
      */
     Engine.disable = function disable() {
         if (loopEnabled) {
@@ -134,14 +134,14 @@ define(function(require, exports, module) {
     Engine.enable();
 
     /**
-     * If step() is called, the Engine is disabled and the frame is advanced 
-     * once by default. step() can be called with a quantity to advance the 
+     * If step() is called, the Engine is disabled and the frame is advanced
+     * once by default. step() can be called with a quantity to advance the
      * Engine that many number of frames.
      *
      * @static
      * @public
      * @method step
-     * @param  {Number} quantity Number of frames to loop through. If false, 
+     * @param  {Number} quantity Number of frames to loop through. If false,
      *                           Engine will loop indefinitely.
      */
     Engine.step = function step(quantity) {
