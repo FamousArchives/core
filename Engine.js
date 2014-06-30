@@ -30,7 +30,7 @@ define(function(require, exports, module) {
 
     var Engine = {};
 
-    var timer = window.performance.now.bind(performance) || Date.now;
+    var timer = window.performance.now.bind(window.performance) || Date.now;
     var requestAnimationFrame = window.requestAnimationFrame;
     var cancelAnimationFrame = window.cancelAnimationFrame;
 
@@ -100,13 +100,14 @@ define(function(require, exports, module) {
         // Unless step is true, continue processing frames.
         if (!quantity) {
             requestID = requestAnimationFrame(loop);
-        } else {
+        }
+        else {
             quantity--;
             requestID = requestAnimationFrame(function(timestamp) {
                 loop(timestamp, quantity);
             });
         }
-    };
+    }
 
     /**
      * Enable the Engine step loop.
@@ -117,7 +118,7 @@ define(function(require, exports, module) {
             requestID = requestAnimationFrame(loop);
             loopEnabled = true;
         }
-    }
+    };
 
     /**
      * Disable the Engine step loop.
@@ -129,7 +130,7 @@ define(function(require, exports, module) {
             requestID = undefined;
             loopEnabled = false;
         }
-    }
+    };
 
     Engine.enable();
 
@@ -148,7 +149,7 @@ define(function(require, exports, module) {
         quantity = quantity || 1;
         Engine.disable();
         loop(timer(), quantity);
-    }
+    };
 
     //
     // Upon main document window resize (unless on an "input" HTML element):
@@ -390,7 +391,9 @@ define(function(require, exports, module) {
     optionsManager.on('change', function(data) {
         if (data.id === 'fpsCap') Engine.setFPSCap(data.value);
         else if (data.id === 'runLoop') {
+            /*eslint-disable */
             console.log('Option `runLoop` is deprecated. Use Engine.enable() instead.');
+            /*eslint-enable */
             // kick off the loop only if it was stopped
             if (data.value) {
                 Engine.enable();
