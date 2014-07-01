@@ -37,9 +37,12 @@ define(function(require, exports, module) {
         this._originGetter = null;
         this._alignGetter = null;
         this._sizeGetter = null;
+        this._visibleGetter = null;
 
         /* TODO: remove this when deprecation complete */
         this._legacyStates = {};
+
+        this._visible = true;
 
         this._output = {
             transform: Transform.identity,
@@ -56,6 +59,7 @@ define(function(require, exports, module) {
             if (options.origin) this.originFrom(options.origin);
             if (options.align) this.alignFrom(options.align);
             if (options.size) this.sizeFrom(options.size);
+            if (options.visible) this.visibleFrom(options.visible);
         }
     }
 
@@ -133,6 +137,26 @@ define(function(require, exports, module) {
         }
         return this;
     };
+
+    /**
+     * Set function, object, or numerical array to provide visibility, as true or false.
+     *   When not visible, all rendering beneath this modifier is skipped.
+     *
+     * @method visibleFrom
+     *
+     * @param {Object} visibility provider object
+     * @return {Modifier} this
+     */
+    Modifier.prototype.visibleFrom = function alignFrom(visible) {
+        if (visible instanceof Function) this._visibleGetter = visible;
+        else if (visible instanceof Object && visible.get) this._visibleGetter = visible.get.bind(visible);
+        else {
+            this._visibleGetter = null;
+            this._visible = visible;
+        }
+        return this;
+    };
+
 
     /**
      * Set function, object, or numerical array to provide size, as [width, height].
@@ -353,6 +377,7 @@ define(function(require, exports, module) {
         if (this._opacityGetter) this._output.opacity = this._opacityGetter();
         if (this._originGetter) this._output.origin = this._originGetter();
         if (this._alignGetter) this._output.align = this._alignGetter();
+        if (this._visibleGetter) this._visible = this._visibleGetter();
         if (this._sizeGetter) this._output.size = this._sizeGetter();
     }
 
@@ -370,6 +395,7 @@ define(function(require, exports, module) {
      */
     Modifier.prototype.modify = function modify(target) {
         _update.call(this);
+        if(!this._visible) return null;
         this._output.target = target;
         return this._output;
     };
