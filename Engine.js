@@ -30,7 +30,7 @@ define(function(require, exports, module) {
 
     var Engine = {};
 
-    var timer = window.performance.now.bind(window.performance) || Date.now;
+    var timer = window.performance || Date;
     var requestAnimationFrame = window.requestAnimationFrame;
     var cancelAnimationFrame = window.cancelAnimationFrame;
 
@@ -40,7 +40,7 @@ define(function(require, exports, module) {
     var nextTickQueue = [];
     var deferQueue = [];
 
-    var lastTime = timer();
+    var lastTime = timer.now();
     var frameTime;
     var frameTimeLimit;
     var loopEnabled = false;
@@ -72,7 +72,7 @@ define(function(require, exports, module) {
      *                           Engine will loop indefinitely.
      */
     function loop(timestamp, quantity) {
-        var currentTime = timer();
+        var currentTime = timer.now();
 
         // skip frame if we're over our framerate cap
         if (frameTimeLimit && currentTime - lastTime < frameTimeLimit) return;
@@ -89,7 +89,7 @@ define(function(require, exports, module) {
         nextTickQueue.splice(0);
 
         // limit total execution time for deferrable functions
-        while (deferQueue.length && (timer() - currentTime) < MAX_DEFER_FRAME_TIME) {
+        while (deferQueue.length && (timer.now() - currentTime) < MAX_DEFER_FRAME_TIME) {
             deferQueue.shift().call(this);
         }
 
@@ -98,10 +98,11 @@ define(function(require, exports, module) {
         eventHandler.emit('postrender');
 
         // Unless step is true, continue processing frames.
-        if (!quantity) {
+        // void 0 is fastest safe way to check if value is `undefined`
+        if (quantity === void 0) {
             requestID = requestAnimationFrame(loop);
         }
-        else {
+        else if (typeof quantity === 'number' && quantity > 0) {
             quantity--;
             requestID = requestAnimationFrame(function(timestamp) {
                 loop(timestamp, quantity);
@@ -125,7 +126,7 @@ define(function(require, exports, module) {
      *
      */
     Engine.disable = function disable() {
-        if (loopEnabled) {
+        if (typeof requestID === 'number') {
             cancelAnimationFrame(requestID);
             requestID = undefined;
             loopEnabled = false;
@@ -148,7 +149,7 @@ define(function(require, exports, module) {
     Engine.step = function step(quantity) {
         quantity = quantity || 1;
         Engine.disable();
-        loop(timer(), quantity);
+        loop(timer.now(), quantity);
     };
 
     //
