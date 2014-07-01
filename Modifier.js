@@ -270,6 +270,19 @@ define(function(require, exports, module) {
     };
 
     /**
+     * Set options for this modifier
+     *
+     * @method setOptions
+     * @param {Object} [options] overrides for default options.  See constructor.
+     */
+    Modifier.prototype.setOptions = function setOptions(options) {
+        if (options.transform) this.transformFrom(options.transform);
+        if (options.opacity !== undefined) this.opacityFrom(options.opacity);
+        if (options.origin) this.originFrom(options.origin);
+        if (options.size) this.sizeFrom(options.size);
+    };
+
+    /**
      * Deprecated: Prefer to stop transform in your provider object.
      * @deprecated
      * @method halt
