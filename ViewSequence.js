@@ -123,10 +123,6 @@ define(function(require, exports, module) {
                 this._previousNode = null;
             }
         }
-        else if (!this._previousNode) {
-            this._previousNode = new (this.constructor)({_: this._, index: this.index - 1});
-            this._previousNode._nextNode = this;
-        }
         return this._previousNode;
     };
 
@@ -145,10 +141,6 @@ define(function(require, exports, module) {
             else {
                 this._nextNode = null;
             }
-        }
-        else if (!this._nextNode) {
-            this._nextNode = new (this.constructor)({_: this._, index: this.index + 1});
-            this._nextNode._previousNode = this;
         }
         return this._nextNode;
     };
