@@ -677,5 +677,67 @@ define(function(require, exports, module) {
      */
     Transform.behind = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -1e-3, 1];
 
+    
+    // Matrix generator functions that can be used in transform-literals (taken from Scene.js)
+    // and extended with missing functions (this comment requires revising)
+    var _MATRIX_GENERATORS = {
+        'translate': Transform.translate,
+        'rotate': Transform.rotate,
+        'rotateX': Transform.rotateX,
+        'rotateY': Transform.rotateY,
+        'rotateZ': Transform.rotateZ,
+        'rotateAxis': Transform.rotateAxis,
+        'scale': Transform.scale,
+        'skew': Transform.skew,
+        'skewX': Transform.skewX,
+        'skewY': Transform.skewY,
+        'perspective': Transform.perspective,
+        'matrix3d': function() {
+            return arguments;
+        }
+    };
+    
+    /**
+     * Resolves a single transform-literal element
+     */
+    function _resolveLiteral(matrixDefinition) {
+        for (var type in _MATRIX_GENERATORS) {
+            if (type in matrixDefinition) {
+                var args = matrixDefinition[type];
+                if (!(args instanceof Array)) args = [args];
+                return _MATRIX_GENERATORS[type].apply(this, args);
+            }
+        }
+    }
+    
+    /**
+     * Parses a literal transform definition, e.g.: '[{translate: [10, 20]}, {rotateX: Math.PI}]'
+     *
+     * @method definition
+     * @static
+     * @param {Object|Array} definition Transform definition
+     * @return {Transform} composed transform
+     */
+    Transform.parse = function parse(definition) {
+        var result = Transform.identity;
+        if (definition instanceof Array) {
+            if (definition.length === 16 && typeof definition[0] === 'number') {
+                result = definition;
+            }
+            else if (definition.length === 1) {
+                result = _resolveLiteral(definition[0]);
+            }
+            else {
+                for (var i = 0; i < definition.length; i++) {
+                    result = Transform.multiply(result, _resolveLiteral(definition[i]));
+                }
+            }
+        }
+        else if (definition instanceof Object) {
+            result = _resolveLiteral(definition);
+        }
+        return result;
+    };
+    
     module.exports = Transform;
 });
