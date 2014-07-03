@@ -73,7 +73,7 @@ define(function(require, exports, module) {
         else if (transform instanceof Object && transform.get) this._transformGetter = transform.get.bind(transform);
         else {
             this._transformGetter = null;
-            this._output.transform = transform;
+            this._output.transform = Transform.parse(transform);
         }
         return this;
     };
