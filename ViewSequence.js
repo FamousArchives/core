@@ -249,7 +249,7 @@ define(function(require, exports, module) {
      * Return value of this ViewSequence node.
      *
      * @method get
-     * @return {Object} value of thiss
+     * @return {Object} value of this ViewSequence
      */
     ViewSequence.prototype.get = function get() {
         return this._.getValue(this.index);
